@@ -5,7 +5,6 @@
 import formatReservationDate from "./format-reservation-date";
 import formatReservationTime from "./format-reservation-date";
 
-
 const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "http://localhost:5001";
 
@@ -54,7 +53,7 @@ async function fetchJson(url, options, onCancel) {
 }
 
 /**
- * Retrieves all existing reservation.
+ * Retrieves all existing reservations.
  * @returns {Promise<[reservation]>}
  *  a promise that resolves to a possibly empty array of reservation saved in the database.
  */
@@ -64,98 +63,130 @@ export async function listReservations(params, signal) {
   Object.entries(params).forEach(([key, value]) =>
     url.searchParams.append(key, value.toString())
   );
-  
-  
   return await fetchJson(url, { headers, signal }, [])
     .then(formatReservationDate)
     .then(formatReservationTime);
 }
 
-/*
-* Sends POST request to server in order to add a new reservation
+
+/**
+ * Creates a new reservation
+ * @returns {Promise<{reservation}>}
+ *  a promise that resolves to a possibly empty object of reservation saved in the database.
+ */
+export async function createReservation(reservation, signal) {
+  const url = new URL(`${API_BASE_URL}/reservations`);
+  const options = {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ data: reservation }),
+    signal,
+  };
+  return await fetchJson(url, options, reservation);
+}
+
+/**
+ * Creates a new table
+ * @returns {Promise<{table}>}
+ *  a promise that resolves to a possibly empty object of table saved in the database.
+ */
+export async function createTable(table, signal) {
+  const url = new URL(`${API_BASE_URL}/tables`);
+  const options = {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ data: table }),
+    signal,
+  };
+  return await fetchJson(url, options, table);
+}
+
+/**
+ * Retrieves all existing tables.
+ * @returns {Promise<[tables]>}
+ *  a promise that resolves to a possibly empty array of tables saved in the database.
+ */
+
+export async function listTables(signal) {
+  const url = new URL(`${API_BASE_URL}/tables`);
+  return await fetchJson(url, { headers, signal }, [])
+}
+
+/**
+ * Seat a reservaion, updates the reservaion status to seated and adds the reservation id to the table
+ * @returns {Promise<{table}>}
+ *  a promise that resolves to a possibly empty object of table saved in the database.
+ */
+export async function seatTable(table_id, reservation_id, signal) {
+  const url = new URL(`${API_BASE_URL}/tables/${table_id}/seat`);
+  const options = {
+    method: "PUT",
+    headers,
+    body: JSON.stringify({ data: { reservation_id: reservation_id } }),
+    signal,
+  };
+  return await fetchJson(url, options, {});
+}
+
+/**
+ * function for a done reservation, updates the reservaion status to finishes and delete the reservation id from the table
+ * @returns {Promise<{table}>}
+ *  a promise that resolves to a possibly empty object of table saved in the database.
+ */
+export async function finishTable(table_id, reservation_id, signal) {
+  const url = new URL(`${API_BASE_URL}/tables/${table_id}/seat`);
+  const options = {
+    method: "DELETE",
+    headers,
+    body: JSON.stringify({ data: table_id }),
+    signal,
+  };
+  return await fetchJson(url, options, {});
+}
+
+/**
+  Retrieves a single existing reservation.
+  @returns {Promise<[reservation]>}
+  a promise that resolves to the data of a single reservation from the database.
 */
 
-export async function addReservation(params, signal) {
-  const url = new URL(`${API_BASE_URL}/reservations`);
-  const put = {data: {
-     ...params,
-     people: parseInt(params.people)
-    }}
+export async function readReservation(reservation_id, signal) {
+  const url = `${API_BASE_URL}/reservations/${reservation_id}`; 
+  return await fetchJson(url, { headers, signal }, []);
+}
+
+/**
+  Updates the requested reservation
+  @returns {Promise<[reservation]>}
+  a promise that resolves to new reservation data being saved to database.
+*/
+
+export async function updateReservation(reservation, signal) {
+  const url = `${API_BASE_URL}/reservations/${reservation.reservation_id}`;
+  const options = {
+    method: "PUT",
+    headers,
+    body: JSON.stringify({ data: reservation }),
+    signal,
+  };
+
+  return await fetchJson(url, options, {});
+}
+
+/**
+  Changes the status of a reservation to "cancelled".
+  @returns {Promise<[reservation]>}
+  a promise that resolves to the reservation data that was saved in the database.
+*/
+
+export async function cancelReservation(reservation_id, signal) {
+  const url = `${API_BASE_URL}/reservations/${reservation_id}/status`;
+  const options = {
+    method: "PUT",
+    headers,
+    body: JSON.stringify({ data: { status: "cancelled"} }),
+    signal,
+  };
   
-  return await fetchJson(url, {signal, method: 'POST', body: JSON.stringify(put), headers});
-
-}
-
-export async function addTable(params, signal) {
-  const url = new URL(`${API_BASE_URL}/tables`);
-  const put = {data: {
-     ...params,
-     capacity: parseInt(params.capacity)
-    }}
-  
-  return await fetchJson(url, {signal, method: 'POST', body: JSON.stringify(put), headers});
-
-}
-
-export async function listTables(params, signal) {
-  const url = new URL(`${API_BASE_URL}/tables`);
-  
-  return await fetchJson(url, { headers, signal }, [])
-    
-}
-
-export async function reserve(params, id, signal) {
-  const url = new URL(`${API_BASE_URL}/tables/${id}/seat`);
-  const put = {data: {
-     reservation_id: parseInt(params.reservation_id)
-    }}
-  
-  return await fetchJson(url, {signal, method: 'PUT', body: JSON.stringify(put), headers});
-
-}
-
-export async function freeTable(id, signal){
-  const url = new URL(`${API_BASE_URL}/tables/${id}/seat`);
-  const destroy = {data: {
-    table_id: parseInt(id)
-   }}
-
-  return await fetchJson(url, {signal, method: 'DELETE', body: JSON.stringify(destroy), headers});
-
-}
-
-export async function cancelReservation(id, signal) {
-  const url = new URL(`${API_BASE_URL}/reservations/${id}/status`)
-  const cancel = {data: { status: "cancelled" }}
-
-  return await fetchJson(url, {signal, method: 'PUT', body: JSON.stringify(cancel), headers})
-}
-
-export async function updatedReservation(id, params, signal) {
-  const url = new URL(`${API_BASE_URL}/reservations/${id}`)
-  const format = params.reservation_time.split(":")
-  const splice = format.splice(2,1)
-  const time = format.join(":")
-  
-
-  const updated = { data: {
-    first_name: params.first_name,
-    last_name: params.last_name,
-    mobile_number: params.mobile_number,
-    reservation_date: params.reservation_date,
-    reservation_time: time,
-    reservation_id: parseInt(id),
-    people: parseInt(params.people)
-  }}
-
-  return await fetchJson(url, {signal, method: 'PUT', body: JSON.stringify(updated), headers})
-}
-
-export async function readReservation(id, signal) {
-  const url = new URL(`${API_BASE_URL}/reservations/${id}`)
-
-  return await fetchJson(url, { headers, signal }, [])
-    .then(formatReservationDate)
-    .then(formatReservationTime)
-
+  return await fetchJson(url, options, {});
 }
