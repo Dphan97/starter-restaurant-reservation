@@ -27,11 +27,8 @@
         "supertest": "^6.1.1"
       }
     },
-    "scripts": {
-  "start": "react-scripts start",
-  "build": "react-scripts build",
-  "test": "react-scripts test",
-  "eject": "react-scripts eject"
+   "scripts": {
+    "start": "node your-script.js"
 },
     "node_modules/@babel/code-frame": {
       "version": "7.12.13",
