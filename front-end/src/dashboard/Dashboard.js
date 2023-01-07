@@ -4,7 +4,7 @@ import { listReservations, listTables } from "../utils/api";
 import ErrorAlert from "../layout/ErrorAlert";
 import {previous, next, today} from "../utils/date-time"
 import ShowReservations from "../reservations/ShowReservations";
-import ShowTables from "../tables/ShowTables";
+import ShowTables from "../tables/ShowTable";
 import useQuery from "../utils/useQuery";
 
 /**
