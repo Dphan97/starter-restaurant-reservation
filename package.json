@@ -47,9 +47,5 @@
   },
   "keywords": [],
   "author": "Thinkful, Inc.",
-  "license": "UNLICENSED",
-  "dependencies": {
-    "react-router-dom": "^6.6.1",
-    "supertest": "^6.3.3"
-  }
+  "license": "UNLICENSED"
 }
