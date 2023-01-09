@@ -5,7 +5,7 @@
 "main": "src/server.js",
 "repository": {
 "type": "git",
-"url": "https://github.com/BrianHook1183/Restaurant-Reservations_Fullstack-Capstone",
+"url": "https://github.com/Dphan97/starter-restaurant-reservation",
 "directory": "/tree/main/back-end"
 },
 "scripts": {
