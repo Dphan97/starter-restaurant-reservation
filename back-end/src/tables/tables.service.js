@@ -1,76 +1,63 @@
 const knex = require("../db/connection")
 
-function post(table) {
-    return knex("tables")
-            .insert(table)
-            .returning("*")
-            .then(returned => returned[0])
+const tableName = "tables";
+
+//Create a new table
+function create(table) {
+  return knex(tableName)
+    .insert(table)
+    .returning("*");
 }
 
-function list() {
-    return knex("tables")
-            .select("*")
-            .then(response => {
-                return  response.sort((a, b) => { return a.table_name.localeCompare(b.table_name)})
-               })
-}
-
-function readRes(reservationId) {
-    return knex("reservations")
-            .select("*")
-            .where({ reservation_id: reservationId })
-            .first()
-
-}
-
+//Read a given table Id
 function read(table_id) {
-    return knex("tables")
-            .select("*")
-            .where({ table_id })
-            .first()
-
+  return knex(tableName)
+    .select("*")
+    .where({table_id: table_id})
+    .first();
 }
 
-function update(updatedTable) {
-    return knex("tables")
-      .select("*")
-      .where({ table_id: updatedTable.table_id })
-      .update(updatedTable, "reservation_id");
-  }
-
-function freeTable(table_id) {
-
-    return knex("tables")
-            .select("*")
-            .where({ table_id })
-            .update({ reservation_id: null}, "reservation_id")
-            
-}  
-
-function seatTable(reservation_id) {
-    return knex("reservations")
-            .select("*")
-            .where({ reservation_id })
-            .update({ status: "seated"}, "status")
+//Update reservation with given ID
+function updateReservation(reservation_id, status) {
+  return knex("reservations")
+    .where({reservation_id: reservation_id})
+    .update({status: status})
 }
 
-function finishTable(reservation_id) {
-    return knex("reservations")
-            .select("*")
-            .where({ reservation_id })
-            .update({ status: "finished"}, "status")
+//List tables
+function list() {
+  return knex(tableName)
+    .select("*");
 }
 
+//Read a given reservation Id
+function readReservation(reservation_id) {
+  return knex("reservations")
+    .select("*")
+    .where({reservation_id: reservation_id})
+    .first()
+}
 
+//Occupy a table
+function occupy(table_id, reservation_id) {
+  return knex(tableName)
+    .where({table_id: table_id})
+    .update({reservation_id: reservation_id, status: "occupied"})
+}
 
+//Free a table
+function free(table_id) {
+  return knex(tableName)
+    .where({table_id: table_id})
+    .update({reservation_id: null, status: "free"})
+}
 
 module.exports = {
-    post,
-    list,
-    readRes,
-    read,
-    update,
-    freeTable,
-    seatTable,
-    finishTable
-}
+  list,
+  create,
+  read,
+  occupy,
+  free,
+  readReservation,
+  updateReservation,
+};
