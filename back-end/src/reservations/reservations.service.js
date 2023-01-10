@@ -1,62 +1,51 @@
-const knex = require("../db/connection")
+const {table} = require("../db/connection");
+const knex = require("../db/connection");
+const tableName = "reservations";
 
-function list(date) {
-    return knex("reservations")
-            .select("*")
-            .where({reservation_date: date})
-            .whereNot({status: "finished"})
-            .then(response => {
-             return  response.sort((a, b) => { return a.reservation_time.localeCompare(b.reservation_time)})
-            })
+//New reservation creation
+function create(reservation) {
+  return knex(tableName)
+    .insert(reservation)
+    .returning("*")
+}
+//Read with given ID
+function read(reservation_id) {
+  return knex(tableName)
+    .select("*")
+    .where({reservation_id: reservation_id})
+    .first();
+}
+//Update reservation with ID
+function update(reservation_id, status) {
+  return knex(tableName)
+    .where({reservation_id: reservation_id})
+    .update({status: status});
+}
+//Edit with given ID
+function edit(reservation_id, reservation) {
+  return knex(tableName)
+    .where({reservation_id: reservation_id})
+    .update ({...reservation})
+    .returning("*")
 }
 
-function post(reservation) {
-    return knex("reservations")
-            .insert(reservation)
-            .returning("*")
-            .then(returned => returned[0])
-}
-
-function read(reservationId) {
-    return knex("reservations")
-            .select("*")
-            .where({ reservation_id: reservationId })
-            .first()
-
-}
-
-function updateStatus(res, status) {
-    return knex("reservations")
-            .select("*")
-            .where({ reservation_id: res })
-            .update({ status }, "status")
-            .returning("*")
-            .then(res => res[0])
-}
-
-function search(mobile_number) {
-    return knex("reservations")
-      .whereRaw(
-        "translate(mobile_number, '() -', '') like ?",
-        `%${mobile_number.replace(/\D/g, "")}%`
-      )
-      .orderBy("reservation_date");
+//List all matching reservations by date/number
+function list(date, mobile_number) {
+  if(date) {
+    return knex(tableName)
+      .select("*")
+      .where({reservation_date: date})
+      .orderBy("reservation_time", "asc")
   }
 
-function update(updatedReservation) {
-  return knex("reservations")
+  if(mobile_number) {
+    return knex(tableName)
       .select("*")
-      .where({ reservation_id: updatedReservation.reservation_id })
-      .update(updatedReservation, "reservation_id")
-      .returning("*")
-      .then(response => response[0])
-}  
+      .where("mobile_number", "like", `${mobile_number}%`);
+  }
 
-module.exports = {
-    list,
-    post,
-    read,
-    updateStatus,
-    search,
-    update
+  return knex(tableName)
+    .select("*")
 }
+
+module.exports = {create, read, update, edit, list}
