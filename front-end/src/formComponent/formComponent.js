@@ -1,103 +1,112 @@
-import React, { useEffect, useState } from "react";
-import { useHistory } from "react-router-dom";
-import {
-  listTables,
-  listReservations,
-  finishTables,
-  cancelReservations,
-} from "../utils/api";
 import ErrorAlert from "../layout/ErrorAlert";
-import ReservationCardList from "../reservations/ReservationCardList";
-import TableList from "../tables/TableList";
-import DateChange from "./DateChange";
+import { useHistory } from "react-router";
 
-/**
- * Defines the dashboard page.
- * @param date
- *  the date for which the user wants to view reservations.
- * @returns {JSX.Element}
- */
-function Dashboard({ date, setDate }) {
-  const [reservations, setReservations] = useState([]);
-  const [reservationsError, setReservationsError] = useState(null);
-
-  const [tables, setTables] = useState([]);
-  const [tablesError, setTablesError] = useState(null);
-
+export default function FormComponent({
+  errors,
+  newReservation,
+  setNewReservation,
+  submitHandler,
+  title
+}) {
+  
   const history = useHistory();
 
-  useEffect(loadDashboard, [date]);
-
-  function loadDashboard() {
-    const abortController = new AbortController();
-    setReservationsError(null);
-    setTablesError(null);
-    listReservations({ date }, abortController.signal)
-      .then(setReservations)
-      .catch(setReservationsError);
-
-    listTables({}, abortController.signal)
-      .then(setTables)
-      .catch(setTablesError);
-
-    return () => abortController.abort();
-  }
-
-  function finishTable(table_id) {
-    const abortController = new AbortController();
-
-    const result = window.confirm(
-      "Is this table ready to seat new guests? This cannot be undone."
-    );
-    if (result) {
-      setTablesError(null);
-      finishTables(table_id, abortController.signal)
-        .then(() => {
-          history.push("/");
-        })
-        .catch(setTablesError);
-    }
-
-    return () => abortController.abort();
-  }
-
-  function cancelReservation(reservation_id) {
-    const abortController = new AbortController();
-
-    const result = window.confirm(
-      "Do you want to cancel this reservation? This cannot be undone."
-    );
-    if (result) {
-      setReservationsError(null);
-      cancelReservations(reservation_id, abortController.signal)
-        .then(() => {
-          history.push("/");
-        })
-        .catch(setReservationsError);
-    }
-
-    return () => abortController.abort();
-  }
+  const onChange = (event) => {
+    const { target } = event;
+    const value = target.value;
+    setNewReservation({ ...newReservation, [target.name]: value });
+  };
 
   return (
-    <main>
-      <h1 className="display-4">Dashboard</h1>
-      <DateChange date={date} setDate={setDate} />
-      <div className="d-md-flex mb-3">
-        <h4 className="mb-0 mt-4 h4">Reservations for Date {date}</h4>
-      </div>
-      <ErrorAlert error={reservationsError} />
-      <ReservationCardList
-        reservations={reservations}
-        cancelReservation={cancelReservation}
-      />
-      <div className="d-md-flex mb-3">
-        <h4 className="mb-0 mt-5 h4">Tables</h4>
-      </div>
-      <ErrorAlert error={tablesError} />
-      <TableList tables={tables} finishTable={finishTable} />
-    </main>
+    <div>
+      <h2>{title}</h2>
+      <form onSubmit={(event) => submitHandler(event, newReservation)}>
+        <div className="form-group">
+        <label htmlFor="first_name">First Name</label>
+          <input
+            required
+            name="first_name"
+            value={newReservation.first_name}
+            placeholder={"First Name"}
+            className="form-control"
+            onChange={onChange}
+          />
+        </div>
+        <div className="form-group">
+        <label htmlFor="last_name">Last Name</label>
+          <input
+            required
+            name="last_name"
+            value={newReservation.last_name}
+            placeholder={"Last Name"}
+            className="form-control"
+            onChange={onChange}
+          />
+        </div>
+        <div 
+        className="form-group"
+        >
+        <label htmlFor="mobile_number">Mobile Number</label>
+          <input
+            required
+            type="tel"
+            name="mobile_number"
+            value={newReservation.mobile_number}
+            placeholder="xxx-xxx-xxxx"
+            className="form-control"
+            onChange={onChange}
+          />
+        </div>
+        <div className="form-group">
+        <label htmlFor="reservation_date">Date</label>
+          <input
+            required
+            name="reservation_date"
+            type="date"
+            value={newReservation.reservation_date}
+            className="form-control"
+            onChange={onChange}
+          />
+        </div>
+        <div className="form-group">
+        <label htmlFor="reservation_time">Time</label>
+          <input
+            required
+            type="time"
+            name="reservation_time"
+            value={newReservation.reservation_time}
+            className="form-control"
+            onChange={onChange}
+          />
+        </div>
+        <div className="form-group">
+        <label htmlFor="people">Number of People</label>
+          <input
+            required
+            type="number"
+            name="people"
+            value={newReservation.people}
+            placeholder="Party Size"
+            className="form-control"
+            onChange={onChange}
+          />
+        </div>
+        <ErrorAlert error={errors} />
+        <button type="submit" 
+        className="btn btn-primary"
+        >Submit</button>
+
+        <button
+          data-reservation-id-cancel={newReservation.reservation_id}
+          type="button"
+          className="btn btn-secondary ml-1"
+          onClick={() => {
+            history.go("-1");
+          }}
+        >
+          Cancel
+        </button>
+      </form>
+    </div>
   );
 }
-
-export default Dashboard;
